@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "pico-report"
+version = "1.0.0"
+description = "A Python package for uploading training metrics and checkpointing data to Pico backend databases"
+authors = ["Pico Team <hi@picolm.io>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "pico_report"}]
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+requests = "^2.31.0"
+pydantic = "^2.0.0"
+python-dotenv = "^1.0.0"
+click = "^8.1.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-mock = "^3.11.1"
+black = "^23.7.0"
+isort = "^5.12.0"
+mypy = "^1.5.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
