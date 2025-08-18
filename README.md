@@ -215,18 +215,3 @@ except PicoAuthError:
 except PicoUploadError as e:
     print(f"Upload failed: {e}")
 ```
-
-## Development
-
-### Setup Development Environment
-
-```bash
-git clone <repository>
-cd pico-report
-poetry install
-poetry run pytest
-```
-
-## License
-
-Apache 2.0
