@@ -109,13 +109,6 @@ reporter.log_evaluation_metrics({
     "eval_loss": 0.45,
     "eval_accuracy": 0.87
 }, step=100, task_name="validation")
-
-# Save checkpoint information
-reporter.save_checkpoint_data({
-    "checkpoint_path": "/path/to/checkpoint",
-    "model_size_mb": 450,
-    "training_time_hours": 2.5
-}, step=100)
 ```
 
 ## Integration with Existing Training Code
@@ -182,11 +175,6 @@ for step, batch in enumerate(dataloader):
     metrics = {"loss": loss.item(), "lr": lr}
     wandb_logger.log(metrics, step=step)
     pico_reporter.log_training_metrics(metrics, step=step)
-    
-    # Save checkpoint data to pico
-    if step % save_every == 0:
-        checkpoint_info = extract_checkpoint_metadata(checkpoint_path)
-        pico_reporter.save_checkpoint_data(checkpoint_info, step=step)
 ```
 
 ## Configuration
