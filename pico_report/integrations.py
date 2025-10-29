@@ -18,7 +18,7 @@ class PicoReporter:
     def __init__(
         self, 
         config: Optional[PicoConfig] = None,
-        project_id: Optional[str] = None,
+        lab_hash: Optional[str] = None,
         experiment_name: Optional[str] = None,
         **kwargs
     ):
@@ -27,13 +27,17 @@ class PicoReporter:
         
         Args:
             config: PicoConfig instance
-            project_id: Project ID override
-            experiment_name: Experiment name override
-            **kwargs: Additional config parameters
+            lab_hash: Lab hash (required - provide here or via PICO_LAB_HASH env var)
+            experiment_name: Experiment name (optional)
+            **kwargs: Additional config parameters (e.g., api_key, base_url)
+            
+        Note:
+            If config is not provided, lab_hash and api_key must be provided either
+            through arguments or environment variables (PICO_LAB_HASH, PICO_API_KEY).
         """
         config_kwargs = kwargs.copy()
-        if project_id:
-            config_kwargs['project_id'] = project_id
+        if lab_hash:
+            config_kwargs['lab_hash'] = lab_hash
         if experiment_name:
             config_kwargs['experiment_name'] = experiment_name
             
@@ -120,52 +124,7 @@ class PicoReporter:
             logger.debug(f"Logged evaluation metrics for {task_name} at step {step}")
         except Exception as e:
             logger.error(f"Failed to log evaluation metrics: {e}")
-    
-    def save_checkpoint_data(
-        self,
-        checkpoint_info: Dict[str, Any],
-        step: int,
-        checkpoint_type: str = "training"
-    ) -> None:
-        """
-        Save checkpoint metadata and information.
-        
-        Args:
-            checkpoint_info: Dictionary containing checkpoint information
-            step: Training step number  
-            checkpoint_type: Type of checkpoint
-        """
-        try:
-            self.client.upload_checkpoint_data(
-                checkpoint_data=checkpoint_info,
-                step=step,
-                checkpoint_type=checkpoint_type
-            )
-            logger.debug(f"Saved checkpoint data at step {step}")
-        except Exception as e:
-            logger.error(f"Failed to save checkpoint data: {e}")
-    
-    def save_learning_dynamics(
-        self,
-        dynamics_data: Dict[str, Any],
-        step: int
-    ) -> None:
-        """
-        Save learning dynamics data.
-        
-        Args:
-            dynamics_data: Learning dynamics information
-            step: Training step number
-        """
-        try:
-            self.client.upload_learning_dynamics(
-                dynamics_data=dynamics_data,
-                step=step
-            )
-            logger.debug(f"Saved learning dynamics at step {step}")
-        except Exception as e:
-            logger.error(f"Failed to save learning dynamics: {e}")
-    
+
     def log_system_metrics(
         self,
         gpu_utilization: Optional[float] = None,
@@ -210,9 +169,13 @@ def create_pico_reporter(**kwargs) -> PicoReporter:
     Convenience function to create a PicoReporter instance.
     
     Args:
-        **kwargs: Configuration parameters
+        **kwargs: Configuration parameters (must include lab_hash or set PICO_LAB_HASH env var)
         
     Returns:
         PicoReporter instance
+        
+    Note:
+        Requires lab_hash and api_key to be provided either as arguments or 
+        via environment variables (PICO_LAB_HASH, PICO_API_KEY).
     """
     return PicoReporter(**kwargs)

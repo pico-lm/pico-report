@@ -1,9 +1,0 @@
-{
-  "metrics": {
-    "loss": 0.5,
-    "accuracy": 0.85,
-    "learning_rate": 0.001
-  },
-  "step": 100,
-  "experiment_name": "test-experiment-123"
-}
