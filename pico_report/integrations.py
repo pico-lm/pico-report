@@ -124,52 +124,7 @@ class PicoReporter:
             logger.debug(f"Logged evaluation metrics for {task_name} at step {step}")
         except Exception as e:
             logger.error(f"Failed to log evaluation metrics: {e}")
-    
-    def save_checkpoint_data(
-        self,
-        checkpoint_info: Dict[str, Any],
-        step: int,
-        checkpoint_type: str = "training"
-    ) -> None:
-        """
-        Save checkpoint metadata and information.
-        
-        Args:
-            checkpoint_info: Dictionary containing checkpoint information
-            step: Training step number  
-            checkpoint_type: Type of checkpoint
-        """
-        try:
-            self.client.upload_checkpoint_data(
-                checkpoint_data=checkpoint_info,
-                step=step,
-                checkpoint_type=checkpoint_type
-            )
-            logger.debug(f"Saved checkpoint data at step {step}")
-        except Exception as e:
-            logger.error(f"Failed to save checkpoint data: {e}")
-    
-    def save_learning_dynamics(
-        self,
-        dynamics_data: Dict[str, Any],
-        step: int
-    ) -> None:
-        """
-        Save learning dynamics data.
-        
-        Args:
-            dynamics_data: Learning dynamics information
-            step: Training step number
-        """
-        try:
-            self.client.upload_learning_dynamics(
-                dynamics_data=dynamics_data,
-                step=step
-            )
-            logger.debug(f"Saved learning dynamics at step {step}")
-        except Exception as e:
-            logger.error(f"Failed to save learning dynamics: {e}")
-    
+
     def log_system_metrics(
         self,
         gpu_utilization: Optional[float] = None,

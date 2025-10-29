@@ -10,13 +10,28 @@ pip install pico-report
 
 ## Quick Start
 
+First, set up your environment variables (recommended) or use direct configuration.
+
+### Setup Environment Variables
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit .env with your actual credentials (NEVER commit this file!)
+# PICO_API_KEY=your_actual_api_key
+# PICO_LAB_HASH=your_actual_lab_hash
+```
+
+### Using the Client
+
 ```python
 from pico_report import PicoClient, PicoConfig
 
-# Method 1: Using environment variables (requires PICO_API_KEY and PICO_LAB_HASH to be set)
+# Method 1: Using environment variables (recommended - secure)
 client = PicoClient()
 
-# Method 2: Direct configuration
+# Method 2: Direct configuration (not recommended for production)
 config = PicoConfig(
     api_key="your-api-key",  # Required
     lab_hash="your-lab-hash",  # Required
@@ -172,6 +187,18 @@ for step, batch in enumerate(dataloader):
     if step % save_every == 0:
         checkpoint_info = extract_checkpoint_metadata(checkpoint_path)
         pico_reporter.save_checkpoint_data(checkpoint_info, step=step)
+```
+
+## Configuration
+
+The base URL should point to the report API endpoint. For local development:
+```bash
+export PICO_BASE_URL="http://localhost:3000/api/report"
+```
+
+For production:
+```bash
+export PICO_BASE_URL="https://picolabs.space/api/report"
 ```
 
 ## API Reference

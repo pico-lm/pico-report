@@ -4,7 +4,7 @@ Configuration management for pico-report package.
 
 import os
 from typing import Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from dotenv import load_dotenv
 
 from .exceptions import PicoConfigError
@@ -37,19 +37,22 @@ class PicoConfig(BaseModel):
         description="Maximum number of retry attempts for failed requests"
     )
     
-    @validator('api_key')
+    @field_validator('api_key')
+    @classmethod
     def validate_api_key(cls, v):
         if not v or len(v.strip()) == 0:
             raise PicoConfigError("API key cannot be empty")
         return v.strip()
     
-    @validator('base_url')
+    @field_validator('base_url')
+    @classmethod
     def validate_base_url(cls, v):
         if not v.startswith(('http://', 'https://')):
             raise PicoConfigError("Base URL must start with http:// or https://")
         return v.rstrip('/')
 
-    @validator('lab_hash')
+    @field_validator('lab_hash')
+    @classmethod
     def validate_lab_hash(cls, v):
         if not v or len(v.strip()) == 0:
             raise PicoConfigError("Lab hash is required and cannot be empty")
@@ -64,7 +67,7 @@ class PicoConfig(BaseModel):
         """
         env_config = {
             'api_key': os.getenv('PICO_API_KEY', ''),
-            'base_url': os.getenv('PICO_BASE_URL', 'https://picolabs.space/api'),
+            'base_url': os.getenv('PICO_BASE_URL', 'https://picolabs.space/api/report'),
             'lab_hash': os.getenv('PICO_LAB_HASH', ''),
             'experiment_name': os.getenv('PICO_EXPERIMENT_NAME'),
             'timeout': int(os.getenv('PICO_TIMEOUT', '30')),

@@ -54,7 +54,7 @@ class PicoClient:
         """Validate API key and connection to backend."""
         try:
             response = self.session.get(
-                f"{self.config.base_url}/v1/heartbeat",
+                f"{self.config.base_url}/heartbeat",
                 timeout=self.config.timeout
             )
             response.raise_for_status()
@@ -69,7 +69,7 @@ class PicoClient:
         files: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Make HTTP request to Pico backend."""
-        url = f"{self.config.base_url}/report{endpoint}"
+        url = f"{self.config.base_url}{endpoint}"
         
         try:
             if files:
