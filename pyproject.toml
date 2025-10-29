@@ -2,7 +2,7 @@
 name = "pico-report"
 version = "1.0.0"
 description = "A Python package for uploading training metrics and checkpointing data to Pico backend databases"
-authors = ["Pico Team <hi@picolm.io>"]
+authors = ["Pico Team <team@picolm.io>"]
 license = "Apache 2.0"
 readme = "README.md"
 packages = [{include = "pico_report"}]

@@ -40,13 +40,13 @@ def validate(api_key: str, base_url: str):
 
 @main.command()
 @click.option('--api-key', help='Pico API key (or use PICO_API_KEY env var)')
-@click.option('--project-id', help='Project ID (or use PICO_PROJECT_ID env var)')
+@click.option('--lab-hash', help='Lab hash (or use PICO_LAB_HASH env var)')
 @click.option('--experiment-name', required=True, help='Experiment name')
 @click.option('--description', help='Experiment description')
 @click.option('--config-file', type=click.Path(exists=True), help='JSON config file')
 def create_experiment(
     api_key: Optional[str],
-    project_id: Optional[str], 
+    lab_hash: Optional[str], 
     experiment_name: str,
     description: Optional[str],
     config_file: Optional[str]
@@ -56,8 +56,8 @@ def create_experiment(
         config_kwargs = {}
         if api_key:
             config_kwargs['api_key'] = api_key
-        if project_id:
-            config_kwargs['project_id'] = project_id
+        if lab_hash:
+            config_kwargs['lab_hash'] = lab_hash
             
         client = PicoClient(**config_kwargs)
         
@@ -82,16 +82,16 @@ def create_experiment(
 
 @main.command()
 @click.option('--api-key', help='Pico API key (or use PICO_API_KEY env var)')
-@click.option('--project-id', help='Project ID (or use PICO_PROJECT_ID env var)')
+@click.option('--lab-hash', help='Lab hash (or use PICO_LAB_HASH env var)')
 @click.option('--limit', default=10, help='Number of experiments to list')
-def list_experiments(api_key: Optional[str], project_id: Optional[str], limit: int):
-    """List experiments in the current project."""
+def list_experiments(api_key: Optional[str], lab_hash: Optional[str], limit: int):
+    """List experiments in the current lab."""
     try:
         config_kwargs = {}
         if api_key:
             config_kwargs['api_key'] = api_key
-        if project_id:
-            config_kwargs['project_id'] = project_id
+        if lab_hash:
+            config_kwargs['lab_hash'] = lab_hash
             
         client = PicoClient(**config_kwargs)
         experiments = client.list_experiments(limit=limit)

@@ -21,9 +21,9 @@ class PicoConfig(BaseModel):
         default="https://api.picolm.io",
         description="Base URL for Pico backend API"
     )
-    project_id: Optional[str] = Field(
+    lab_hash: Optional[str] = Field(
         default=None,
-        description="Project ID for organizing experiments"
+        description="Lab hash for organizing experiments"
     )
     experiment_name: Optional[str] = Field(
         default=None,
@@ -55,8 +55,8 @@ class PicoConfig(BaseModel):
         """Create config from environment variables with optional overrides."""
         env_config = {
             'api_key': os.getenv('PICO_API_KEY', ''),
-            'base_url': os.getenv('PICO_BASE_URL', 'https://api.picolm.io'),
-            'project_id': os.getenv('PICO_PROJECT_ID'),
+            'base_url': os.getenv('PICO_BASE_URL', 'https://picolabs.space/api'),
+            'lab_hash': os.getenv('PICO_LAB_HASH'),
             'experiment_name': os.getenv('PICO_EXPERIMENT_NAME'),
             'timeout': int(os.getenv('PICO_TIMEOUT', '30')),
             'max_retries': int(os.getenv('PICO_MAX_RETRIES', '3')),

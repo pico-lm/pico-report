@@ -19,7 +19,7 @@ client = PicoClient()
 # Method 2: Direct configuration
 config = PicoConfig(
     api_key="your-api-key",
-    project_id="your-project-id",
+    lab_hash="your-lab-hash",
     experiment_name="experiment-1"
 )
 client = PicoClient(config=config)
@@ -55,7 +55,7 @@ Create a `.env` file in your project root:
 
 ```env
 PICO_API_KEY=your-api-key
-PICO_PROJECT_ID=your-project-id
+PICO_LAB_HASH=your-lab-hash
 PICO_EXPERIMENT_NAME=my-experiment
 ```
 
@@ -67,7 +67,7 @@ For easier integration, use the `PicoReporter` class:
 from pico_report.integrations import PicoReporter
 
 reporter = PicoReporter(
-    project_id="my-project",
+    lab_hash="my-lab-hash",
     experiment_name="transformer-training"
 )
 
@@ -149,7 +149,7 @@ from pico_report.integrations import PicoReporter
 # Initialize both wandb and pico reporter
 wandb_logger = initialize_wandb(monitoring_config, checkpointing_config)
 pico_reporter = PicoReporter(
-    project_id=monitoring_config.pico.project_id,
+    lab_hash=monitoring_config.pico.lab_hash,
     experiment_name=checkpointing_config.run_name
 )
 
@@ -177,9 +177,6 @@ Main client for direct API interaction.
 #### Methods
 
 - `log_metrics(metrics, step, timestamp)`: Log training metrics
-- `upload_checkpoint_data(checkpoint_data, step, checkpoint_type)`: Upload checkpoint information  
-- `upload_learning_dynamics(dynamics_data, step)`: Upload learning dynamics data
-- `upload_evaluation_results(evaluation_data, step, task_name)`: Upload evaluation results
 - `create_experiment(name, config_data, description)`: Create new experiment
 - `list_experiments(limit, offset)`: List existing experiments
 
@@ -192,8 +189,6 @@ High-level interface for easier integration.
 - `setup_experiment(name, config_data, description)`: Setup experiment
 - `log_training_metrics(metrics, step, prefix)`: Log training metrics with prefix
 - `log_evaluation_metrics(metrics, step, task_name)`: Log evaluation metrics
-- `save_checkpoint_data(checkpoint_info, step, checkpoint_type)`: Save checkpoint data
-- `save_learning_dynamics(dynamics_data, step)`: Save learning dynamics
 - `log_system_metrics(**metrics)`: Log system performance metrics
 
 ## Error Handling

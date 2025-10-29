@@ -65,7 +65,7 @@ class PicoClient:
         files: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Make HTTP request to Pico backend."""
-        url = f"{self.config.base_url}/v1{endpoint}"
+        url = f"{self.config.base_url}/report{endpoint}"
         
         try:
             if files:
@@ -118,92 +118,12 @@ class PicoClient:
             'metrics': metrics,
             'step': step,
             'timestamp': timestamp,
-            'project_id': self.config.project_id,
+            'lab_hash': self.config.lab_hash,
             'experiment_name': self.config.experiment_name
         }
         
         return self._make_request('POST', '/metrics', data=payload)
     
-    def upload_checkpoint_data(
-        self,
-        checkpoint_data: Dict[str, Any],
-        step: int,
-        checkpoint_type: str = 'training'
-    ) -> Dict[str, Any]:
-        """
-        Upload checkpoint data to Pico backend.
-        
-        Args:
-            checkpoint_data: Dictionary containing checkpoint information
-            step: Training step number
-            checkpoint_type: Type of checkpoint ('training', 'evaluation', etc.)
-            
-        Returns:
-            Response from backend API
-        """
-        payload = {
-            'checkpoint_data': checkpoint_data,
-            'step': step,
-            'checkpoint_type': checkpoint_type,
-            'project_id': self.config.project_id,
-            'experiment_name': self.config.experiment_name,
-            'timestamp': time.time()
-        }
-        
-        return self._make_request('POST', '/checkpoints', data=payload)
-    
-    def upload_learning_dynamics(
-        self,
-        dynamics_data: Dict[str, Any],
-        step: int
-    ) -> Dict[str, Any]:
-        """
-        Upload learning dynamics data to Pico backend.
-        
-        Args:
-            dynamics_data: Dictionary containing learning dynamics information
-            step: Training step number
-            
-        Returns:
-            Response from backend API
-        """
-        payload = {
-            'dynamics_data': dynamics_data,
-            'step': step,
-            'project_id': self.config.project_id,
-            'experiment_name': self.config.experiment_name,
-            'timestamp': time.time()
-        }
-        
-        return self._make_request('POST', '/learning-dynamics', data=payload)
-    
-    def upload_evaluation_results(
-        self,
-        evaluation_data: Dict[str, Any],
-        step: int,
-        task_name: str
-    ) -> Dict[str, Any]:
-        """
-        Upload evaluation results to Pico backend.
-        
-        Args:
-            evaluation_data: Dictionary containing evaluation results
-            step: Training step number
-            task_name: Name of the evaluation task
-            
-        Returns:
-            Response from backend API
-        """
-        payload = {
-            'evaluation_data': evaluation_data,
-            'step': step,
-            'task_name': task_name,
-            'project_id': self.config.project_id,
-            'experiment_name': self.config.experiment_name,
-            'timestamp': time.time()
-        }
-        
-        return self._make_request('POST', '/evaluations', data=payload)
     
     def create_experiment(
         self,
@@ -224,7 +144,7 @@ class PicoClient:
         """
         payload = {
             'name': experiment_name,
-            'project_id': self.config.project_id,
+            'lab_hash': self.config.lab_hash,
             'config': config_data,
             'description': description,
             'timestamp': time.time()
@@ -239,7 +159,7 @@ class PicoClient:
     
     def list_experiments(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """
-        List experiments in the current project.
+        List experiments in the current lab.
         
         Args:
             limit: Maximum number of experiments to return
@@ -249,7 +169,7 @@ class PicoClient:
             List of experiment dictionaries
         """
         params = {
-            'project_id': self.config.project_id,
+            'lab_hash': self.config.lab_hash,
             'limit': limit,
             'offset': offset
         }

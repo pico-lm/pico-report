@@ -18,7 +18,7 @@ class PicoReporter:
     def __init__(
         self, 
         config: Optional[PicoConfig] = None,
-        project_id: Optional[str] = None,
+        lab_hash: Optional[str] = None,
         experiment_name: Optional[str] = None,
         **kwargs
     ):
@@ -27,13 +27,13 @@ class PicoReporter:
         
         Args:
             config: PicoConfig instance
-            project_id: Project ID override
+            lab_hash: Lab hash override
             experiment_name: Experiment name override
             **kwargs: Additional config parameters
         """
         config_kwargs = kwargs.copy()
-        if project_id:
-            config_kwargs['project_id'] = project_id
+        if lab_hash:
+            config_kwargs['lab_hash'] = lab_hash
         if experiment_name:
             config_kwargs['experiment_name'] = experiment_name
             
