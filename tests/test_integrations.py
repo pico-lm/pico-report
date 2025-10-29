@@ -100,14 +100,14 @@ class TestPicoReporter:
         mock_client_class.return_value = mock_client
         
         reporter = PicoReporter(lab_hash=mock_lab_hash, api_key=mock_api_key)
-        reporter.log_evaluation_metrics(sample_metrics, step=100, task_name="test")
+        reporter.log_evaluation_metrics(sample_metrics, step=100, prefix="test")
         
-        # Should call both log_metrics and upload_evaluation_results
+        # Should call log_metrics
         assert mock_client.log_metrics.called
         
         logged_metrics = mock_client.log_metrics.call_args[0][0]
         for key in sample_metrics.keys():
-            assert f"eval/test/{key}" in logged_metrics
+            assert f"test/{key}" in logged_metrics
     
     @patch('pico_report.integrations.PicoClient')
     def test_log_system_metrics(self, mock_client_class, mock_api_key, mock_lab_hash):

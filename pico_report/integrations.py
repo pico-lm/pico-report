@@ -75,6 +75,26 @@ class PicoReporter:
             # Continue without failing - experiment might already exist
             return {}
     
+    def _log_metrics(
+        self,
+        metrics: Dict[str, Union[int, float]],
+        step: int,
+        metric_type: str
+    ) -> None:
+        """
+        Internal helper to log metrics with error handling.
+        
+        Args:
+            metrics: Dictionary of formatted metric names and values
+            step: Training step number
+            metric_type: Type of metrics for logging purposes (e.g., "training", "evaluation", "analysis")
+        """
+        try:
+            self.client.log_metrics(metrics, step=step)
+            logger.debug(f"Logged {len(metrics)} {metric_type} metrics at step {step}")
+        except Exception as e:
+            logger.error(f"Failed to log {metric_type} metrics: {e}")
+    
     def log_training_metrics(
         self,
         metrics: Dict[str, Union[int, float]],
@@ -87,43 +107,70 @@ class PicoReporter:
         Args:
             metrics: Dictionary of metric names and values
             step: Training step number
-            prefix: Prefix to add to metric names
+            prefix: Prefix to add to metric names (default: "train")
         """
-        try:
-            prefixed_metrics = {f"{prefix}/{k}": v for k, v in metrics.items()}
-            self.client.log_metrics(prefixed_metrics, step=step)
-            logger.debug(f"Logged {len(metrics)} training metrics at step {step}")
-        except Exception as e:
-            logger.error(f"Failed to log training metrics: {e}")
+        prefixed_metrics = {f"{prefix}/{k}": v for k, v in metrics.items()}
+        self._log_metrics(prefixed_metrics, step, "training")
     
     def log_evaluation_metrics(
         self,
         metrics: Dict[str, Union[int, float]],
         step: int,
-        task_name: str = "validation"
+        prefix: str = "eval"
     ) -> None:
         """
-        Log evaluation metrics.
+        Log evaluation metrics with optional prefix. 
+        NOTE: We could add some fancy handling if we want to store the evaluation results 
+        in a separate table in the database.
         
         Args:
             metrics: Dictionary of metric names and values
             step: Training step number
-            task_name: Name of the evaluation task
+            prefix: Prefix to add to metric names (default: "validation")
         """
-        try:
-            # Log as regular metrics with eval prefix
-            prefixed_metrics = {f"eval/{task_name}/{k}": v for k, v in metrics.items()}
-            self.client.log_metrics(prefixed_metrics, step=step)
-            
-            # Also upload as evaluation results for specialized handling
-            self.client.upload_evaluation_results(
-                evaluation_data=metrics,
-                step=step,
-                task_name=task_name
-            )
-            logger.debug(f"Logged evaluation metrics for {task_name} at step {step}")
-        except Exception as e:
-            logger.error(f"Failed to log evaluation metrics: {e}")
+        prefixed_metrics = {f"{prefix}/{k}": v for k, v in metrics.items()}
+        self._log_metrics(prefixed_metrics, step, "evaluation")
+    
+    def log_analysis_metrics(
+        self,
+        metric_name: str,
+        metric_data: Dict[str, float],
+        step: int,
+        data_split: str,
+        prefix: str = "analysis"
+    ) -> None:
+        """
+        Log learning dynamics analysis metrics.
+        
+        This method is specifically designed for logging metrics from pico-analyze,
+        which often have per-layer values. The metrics are formatted to match the
+        structure used in wandb logging.
+        
+        Args:
+            metric_name: Name of the metric (e.g., "cka", "per", "gini")
+            metric_data: Dictionary mapping layer names to metric values
+                Example: {"model.0.attention.o_proj.weights": 0.85, ...}
+            step: Training step number at which analysis was performed
+            data_split: Data split used for analysis (e.g., "train", "val")
+            prefix: Prefix to add to metric names (default: "analysis")
+        
+        Example:
+            >>> reporter.log_analysis_metrics(
+            ...     metric_name="cka",
+            ...     metric_data={
+            ...         "model.0.attention.o_proj.weights": 0.85,
+            ...         "model.1.attention.o_proj.weights": 0.92
+            ...     },
+            ...     step=5000,
+            ...     data_split="val"
+            ... )
+        """
+        # Format metrics to match wandb structure: {prefix}/{metric_name}_{data_split}/{layer}
+        formatted_metrics = {
+            f"{prefix}/{metric_name}_{data_split}/{layer}": value
+            for layer, value in metric_data.items()
+        }
+        self._log_metrics(formatted_metrics, step, "analysis")
 
     def log_system_metrics(
         self,

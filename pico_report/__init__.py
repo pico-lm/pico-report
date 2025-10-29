@@ -5,6 +5,14 @@ Pico Report - A Python package for uploading training metrics and checkpointing 
 from .client import PicoClient
 from .config import PicoConfig
 from .exceptions import PicoReportError, PicoAuthError, PicoUploadError
+from .integrations import PicoReporter
 
 __version__ = "1.0.0"
-__all__ = ["PicoClient", "PicoConfig", "PicoReportError", "PicoAuthError", "PicoUploadError"]
+__all__ = [
+    "PicoClient", 
+    "PicoConfig", 
+    "PicoReporter",
+    "PicoReportError", 
+    "PicoAuthError", 
+    "PicoUploadError"
+]
