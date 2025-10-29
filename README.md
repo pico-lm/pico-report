@@ -13,14 +13,14 @@ pip install pico-report
 ```python
 from pico_report import PicoClient, PicoConfig
 
-# Method 1: Using environment variables
+# Method 1: Using environment variables (requires PICO_API_KEY and PICO_LAB_HASH to be set)
 client = PicoClient()
 
 # Method 2: Direct configuration
 config = PicoConfig(
-    api_key="your-api-key",
-    lab_hash="your-lab-hash",
-    experiment_name="experiment-1"
+    api_key="your-api-key",  # Required
+    lab_hash="your-lab-hash",  # Required
+    experiment_name="experiment-1"  # Optional
 )
 client = PicoClient(config=config)
 
@@ -43,10 +43,11 @@ client.upload_checkpoint_data({
 
 ### Environment Variables
 
-Set the following environment variables:
+Set the following **required** environment variables:
 
 ```bash
 export PICO_API_KEY="your-api-key"
+export PICO_LAB_HASH="your-lab-hash"
 ```
 
 ### Configuration File
@@ -54,8 +55,11 @@ export PICO_API_KEY="your-api-key"
 Create a `.env` file in your project root:
 
 ```env
+# Required
 PICO_API_KEY=your-api-key
 PICO_LAB_HASH=your-lab-hash
+
+# Optional
 PICO_EXPERIMENT_NAME=my-experiment
 ```
 
@@ -66,9 +70,10 @@ For easier integration, use the `PicoReporter` class:
 ```python
 from pico_report.integrations import PicoReporter
 
+# lab_hash is required - provide it explicitly or via PICO_LAB_HASH environment variable
 reporter = PicoReporter(
-    lab_hash="my-lab-hash",
-    experiment_name="transformer-training"
+    lab_hash="my-lab-hash",  # Required
+    experiment_name="transformer-training"  # Optional
 )
 
 # Setup experiment
@@ -109,6 +114,7 @@ from pico_report.integrations import PicoReporter
 class MyLightningModule(L.LightningModule):
     def __init__(self):
         super().__init__()
+        # Requires PICO_API_KEY and PICO_LAB_HASH environment variables to be set
         self.pico_reporter = PicoReporter(
             experiment_name="lightning-training"
         )

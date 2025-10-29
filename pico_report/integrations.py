@@ -27,9 +27,13 @@ class PicoReporter:
         
         Args:
             config: PicoConfig instance
-            lab_hash: Lab hash override
-            experiment_name: Experiment name override
-            **kwargs: Additional config parameters
+            lab_hash: Lab hash (required - provide here or via PICO_LAB_HASH env var)
+            experiment_name: Experiment name (optional)
+            **kwargs: Additional config parameters (e.g., api_key, base_url)
+            
+        Note:
+            If config is not provided, lab_hash and api_key must be provided either
+            through arguments or environment variables (PICO_LAB_HASH, PICO_API_KEY).
         """
         config_kwargs = kwargs.copy()
         if lab_hash:
@@ -210,9 +214,13 @@ def create_pico_reporter(**kwargs) -> PicoReporter:
     Convenience function to create a PicoReporter instance.
     
     Args:
-        **kwargs: Configuration parameters
+        **kwargs: Configuration parameters (must include lab_hash or set PICO_LAB_HASH env var)
         
     Returns:
         PicoReporter instance
+        
+    Note:
+        Requires lab_hash and api_key to be provided either as arguments or 
+        via environment variables (PICO_LAB_HASH, PICO_API_KEY).
     """
     return PicoReporter(**kwargs)

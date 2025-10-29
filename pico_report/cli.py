@@ -22,15 +22,16 @@ def main(debug: bool):
 
 @main.command()
 @click.option('--api-key', required=True, help='Pico API key')
+@click.option('--lab-hash', required=True, help='Lab hash')
 @click.option('--base-url', default='https://api.picolm.io', help='Pico backend URL')
-def validate(api_key: str, base_url: str):
+def validate(api_key: str, lab_hash: str, base_url: str):
     """Validate API key and connection to Pico backend."""
     if not validate_api_key(api_key):
         click.echo("❌ Invalid API key format", err=True)
         sys.exit(1)
     
     try:
-        config = PicoConfig(api_key=api_key, base_url=base_url)
+        config = PicoConfig(api_key=api_key, lab_hash=lab_hash, base_url=base_url)
         client = PicoClient(config=config)
         click.echo("✅ API key valid and connection successful")
     except PicoReportError as e:
@@ -40,7 +41,7 @@ def validate(api_key: str, base_url: str):
 
 @main.command()
 @click.option('--api-key', help='Pico API key (or use PICO_API_KEY env var)')
-@click.option('--lab-hash', help='Lab hash (or use PICO_LAB_HASH env var)')
+@click.option('--lab-hash', help='Lab hash (required - or use PICO_LAB_HASH env var)')
 @click.option('--experiment-name', required=True, help='Experiment name')
 @click.option('--description', help='Experiment description')
 @click.option('--config-file', type=click.Path(exists=True), help='JSON config file')
@@ -51,7 +52,11 @@ def create_experiment(
     description: Optional[str],
     config_file: Optional[str]
 ):
-    """Create a new experiment in Pico backend."""
+    """
+    Create a new experiment in Pico backend.
+    
+    Requires PICO_API_KEY and PICO_LAB_HASH environment variables or --api-key and --lab-hash options.
+    """
     try:
         config_kwargs = {}
         if api_key:
@@ -82,10 +87,14 @@ def create_experiment(
 
 @main.command()
 @click.option('--api-key', help='Pico API key (or use PICO_API_KEY env var)')
-@click.option('--lab-hash', help='Lab hash (or use PICO_LAB_HASH env var)')
+@click.option('--lab-hash', help='Lab hash (required - or use PICO_LAB_HASH env var)')
 @click.option('--limit', default=10, help='Number of experiments to list')
 def list_experiments(api_key: Optional[str], lab_hash: Optional[str], limit: int):
-    """List experiments in the current lab."""
+    """
+    List experiments in the current lab.
+    
+    Requires PICO_API_KEY and PICO_LAB_HASH environment variables or --api-key and --lab-hash options.
+    """
     try:
         config_kwargs = {}
         if api_key:
@@ -111,21 +120,29 @@ def list_experiments(api_key: Optional[str], lab_hash: Optional[str], limit: int
 
 @main.command()
 @click.option('--api-key', help='Pico API key (or use PICO_API_KEY env var)')
+@click.option('--lab-hash', help='Lab hash (required - or use PICO_LAB_HASH env var)')
 @click.option('--experiment-name', help='Experiment name')
 @click.option('--metrics-file', type=click.Path(exists=True), required=True, 
               help='JSON file containing metrics data')
 @click.option('--step', type=int, help='Training step number')
 def upload_metrics(
     api_key: Optional[str],
+    lab_hash: Optional[str],
     experiment_name: Optional[str],
     metrics_file: str,
     step: Optional[int]
 ):
-    """Upload metrics from JSON file."""
+    """
+    Upload metrics from JSON file.
+    
+    Requires PICO_API_KEY and PICO_LAB_HASH environment variables or --api-key and --lab-hash options.
+    """
     try:
         config_kwargs = {}
         if api_key:
             config_kwargs['api_key'] = api_key
+        if lab_hash:
+            config_kwargs['lab_hash'] = lab_hash
         if experiment_name:
             config_kwargs['experiment_name'] = experiment_name
             

@@ -23,6 +23,10 @@ class PicoClient:
         Args:
             config: PicoConfig instance. If None, will create from environment.
             **kwargs: Additional config parameters to override defaults.
+            
+        Note:
+            Requires api_key and lab_hash to be provided either via config object,
+            kwargs, or environment variables (PICO_API_KEY, PICO_LAB_HASH).
         """
         if config is None:
             config = PicoConfig.from_env(**kwargs)

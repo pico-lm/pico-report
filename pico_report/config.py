@@ -21,19 +21,18 @@ class PicoConfig(BaseModel):
         default="https://api.picolm.io",
         description="Base URL for Pico backend API"
     )
-    lab_hash: Optional[str] = Field(
-        default=None,
+    lab_hash: str = Field(
         description="Lab hash for organizing experiments"
     )
     experiment_name: Optional[str] = Field(
         default=None,
         description="Name of the current experiment"
     )
-    timeout: int = Field(
+    timeout: Optional[int] = Field(
         default=30,
         description="Request timeout in seconds"
     )
-    max_retries: int = Field(
+    max_retries: Optional[int] = Field(
         default=3,
         description="Maximum number of retry attempts for failed requests"
     )
@@ -49,14 +48,24 @@ class PicoConfig(BaseModel):
         if not v.startswith(('http://', 'https://')):
             raise PicoConfigError("Base URL must start with http:// or https://")
         return v.rstrip('/')
+
+    @validator('lab_hash')
+    def validate_lab_hash(cls, v):
+        if not v or len(v.strip()) == 0:
+            raise PicoConfigError("Lab hash is required and cannot be empty")
+        return v.strip()
     
     @classmethod
     def from_env(cls, **kwargs) -> 'PicoConfig':
-        """Create config from environment variables with optional overrides."""
+        """
+        Create config from environment variables with optional overrides.
+        
+        Note: PICO_API_KEY and PICO_LAB_HASH environment variables are required.
+        """
         env_config = {
             'api_key': os.getenv('PICO_API_KEY', ''),
             'base_url': os.getenv('PICO_BASE_URL', 'https://picolabs.space/api'),
-            'lab_hash': os.getenv('PICO_LAB_HASH'),
+            'lab_hash': os.getenv('PICO_LAB_HASH', ''),
             'experiment_name': os.getenv('PICO_EXPERIMENT_NAME'),
             'timeout': int(os.getenv('PICO_TIMEOUT', '30')),
             'max_retries': int(os.getenv('PICO_MAX_RETRIES', '3')),
