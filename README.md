@@ -108,7 +108,7 @@ reporter.log_training_metrics({
 reporter.log_evaluation_metrics({
     "eval_loss": 0.45,
     "eval_accuracy": 0.87
-}, step=100, task_name="validation")
+}, step=100, prefix="validation")
 ```
 
 ## Integration with Existing Training Code
@@ -209,7 +209,8 @@ High-level interface for easier integration.
 
 - `setup_experiment(name, config_data, description)`: Setup experiment
 - `log_training_metrics(metrics, step, prefix)`: Log training metrics with prefix
-- `log_evaluation_metrics(metrics, step, task_name)`: Log evaluation metrics
+- `log_evaluation_metrics(metrics, step, prefix)`: Log evaluation metrics with prefix
+- `log_analysis_metrics(metric_name, metric_data, step, data_split, prefix)`: Log learning dynamics analysis metrics
 - `log_system_metrics(**metrics)`: Log system performance metrics
 
 ## Error Handling

@@ -121,7 +121,7 @@ class TestRealAPIIntegration:
             reporter.log_evaluation_metrics({
                 "eval_loss": 0.5,
                 "eval_acc": 0.85
-            }, step=3, task_name="validation")
+            }, step=3, prefix="validation")
             
             # Log system metrics
             reporter.log_system_metrics(
