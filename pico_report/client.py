@@ -163,6 +163,20 @@ class PicoClient:
                     text=True
                 ).stdout.strip()
                 
+                # Try to push the commit to remote
+                try:
+                    subprocess.run(
+                        ['git', 'push'],
+                        check=True,
+                        capture_output=True,
+                        timeout=30  # 30 second timeout for push
+                    )
+                    print(f"✓ Pushed commit {commit_sha[:7]} to remote repository")
+                except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as push_error:
+                    # Push failed, but commit was created locally
+                    print(f"Warning: Failed to push commit to remote: {push_error}")
+                    print("Commit created locally. You may need to push manually.")
+                
                 return commit_sha, commit_message
             else:
                 # No changes, use current commit
