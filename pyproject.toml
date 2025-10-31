@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pico-report"
-version = "1.1.0"
+version = "1.1.1"
 description = "A Python package for uploading training metrics and checkpointing data to Pico backend databases"
 authors = ["Pico Team <team@picolm.io>"]
 license = "Apache 2.0"
