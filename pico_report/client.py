@@ -3,25 +3,27 @@ Main client for interacting with Pico backend API.
 """
 
 import json
+import os
+import subprocess
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from .config import PicoConfig
-from .exceptions import PicoAuthError, PicoUploadError, PicoReportError
+from .config import ReporterConfig
+from .exceptions import PicoAuthError, PicoUploadError, PicoReportError, PicoGitError
 
 
 class PicoClient:
     """Client for uploading data to Pico backend databases."""
     
-    def __init__(self, config: Optional[PicoConfig] = None, **kwargs):
+    def __init__(self, config: Optional[ReporterConfig] = None, **kwargs):
         """
         Initialize PicoClient.
         
         Args:
-            config: PicoConfig instance. If None, will create from environment.
+            config: ReporterConfig instance. If None, will create from environment.
             **kwargs: Additional config parameters to override defaults.
             
         Note:
@@ -29,7 +31,7 @@ class PicoClient:
             kwargs, or environment variables (PICO_API_KEY, PICO_LAB_HASH).
         """
         if config is None:
-            config = PicoConfig.from_env(**kwargs)
+            config = ReporterConfig.from_env(**kwargs)
         self.config = config
         
         self.session = requests.Session()
@@ -60,6 +62,117 @@ class PicoClient:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             raise PicoAuthError(f"Failed to connect to Pico backend: {e}")
+    
+    def _is_git_repo(self) -> bool:
+        """Check if current directory is a git repository."""
+        try:
+            subprocess.run(
+                ['git', 'rev-parse', '--git-dir'],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            raise PicoGitError("Current directory is not a git repository")
+    
+    def _get_git_info(self) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+        """
+        Get current git commit SHA, branch, and status.
+        
+        Returns:
+            Tuple of (commit_sha, branch, has_changes)
+        """
+        if not self._is_git_repo():
+            return None, None, None
+        
+        try:
+            # Get current commit SHA
+            commit_sha = subprocess.run(
+                ['git', 'rev-parse', 'HEAD'],
+                check=True,
+                capture_output=True,
+                text=True
+            ).stdout.strip()
+            
+            # Get current branch
+            branch = subprocess.run(
+                ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                check=True,
+                capture_output=True,
+                text=True
+            ).stdout.strip()
+            
+            # Check for uncommitted changes
+            status = subprocess.run(
+                ['git', 'status', '--porcelain'],
+                check=True,
+                capture_output=True,
+                text=True
+            ).stdout.strip()
+            
+            has_changes = bool(status)
+            
+            return commit_sha, branch, has_changes
+            
+        except subprocess.CalledProcessError:
+            return None, None, None
+    
+    def _create_git_commit(self, experiment_name: str, config_data: Optional[Dict[str, Any]] = None) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Create a git commit for the experiment.
+        
+        Args:
+            experiment_name: Name of the experiment
+            config_data: Configuration data to save
+            
+        Returns:
+            Tuple of (commit_sha, commit_message) or (None, None) if git operations fail
+        """
+        if not self._is_git_repo():
+            return None, None
+        
+        try:
+            # Check if there are changes to commit
+            _, _, has_changes = self._get_git_info()
+            
+            if has_changes:
+                # Stage all changes
+                subprocess.run(
+                    ['git', 'add', '-A'],
+                    check=True,
+                    capture_output=True
+                )
+                
+                # Create commit message
+                commit_message = f"Experiment: {experiment_name}"
+                
+                # Commit changes
+                subprocess.run(
+                    ['git', 'commit', '-m', commit_message],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                
+                # Get the new commit SHA
+                commit_sha = subprocess.run(
+                    ['git', 'rev-parse', 'HEAD'],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                ).stdout.strip()
+                
+                return commit_sha, commit_message
+            else:
+                # No changes, use current commit
+                commit_sha, _, _ = self._get_git_info()
+                return commit_sha, None
+                
+        except subprocess.CalledProcessError as e:
+            # Git operations failed, but don't fail the experiment creation
+            print(f"Warning: Git commit failed: {e}")
+            return None, None
     
     def _make_request(
         self, 
@@ -133,10 +246,15 @@ class PicoClient:
         self,
         experiment_name: str,
         config_data: Optional[Dict[str, Any]] = None,
-        description: Optional[str] = None
+        description: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Create a new experiment in Pico backend.
+        Create a new experiment in Pico backend with automatic git tracking.
+        
+        This method will:
+        1. Create a local git commit if there are changes (when auto_commit=True)
+        2. Create the experiment in the Pico backend with git metadata
+        3. The git commit SHA will be tracked with the experiment
         
         Args:
             experiment_name: Name of the experiment
@@ -146,12 +264,29 @@ class PicoClient:
         Returns:
             Response from backend API containing experiment details
         """
+        git_commit_sha = None
+        git_commit_message = None
+        git_branch = None
+        
+        # Create git commit if enabled and in a git repo
+        if self.config.auto_commit:
+            commit_sha, commit_msg = self._create_git_commit(experiment_name, config_data)
+            if commit_sha:
+                git_commit_sha = commit_sha
+                git_commit_message = commit_msg or f"Experiment: {experiment_name}"
+                # Get branch info
+                _, branch, _ = self._get_git_info()
+                git_branch = branch
+        
         payload = {
             'name': experiment_name,
             'lab_hash': self.config.lab_hash,
             'config': config_data,
             'description': description,
-            'timestamp': time.time()
+            'timestamp': time.time(),
+            'git_commit_sha': git_commit_sha,
+            'git_commit_message': git_commit_message,
+            'git_branch': git_branch
         }
         
         response = self._make_request('POST', '/experiments', data=payload)

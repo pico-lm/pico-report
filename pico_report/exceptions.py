@@ -4,20 +4,25 @@ Custom exceptions for pico-report package.
 
 
 class PicoReportError(Exception):
-    """Base exception for pico-report package."""
+    """Base exception for pico-report errors."""
     pass
 
 
 class PicoAuthError(PicoReportError):
-    """Exception raised for authentication-related errors."""
+    """Raised when authentication fails."""
     pass
 
 
 class PicoUploadError(PicoReportError):
-    """Exception raised for data upload errors."""
+    """Raised when data upload fails."""
     pass
 
 
 class PicoConfigError(PicoReportError):
-    """Exception raised for configuration-related errors."""
+    """Raised when configuration is invalid."""
+    pass
+
+
+class PicoGitError(PicoReportError):
+    """Raised when git operations fail."""
     pass

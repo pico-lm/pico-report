@@ -13,7 +13,7 @@ from .exceptions import PicoConfigError
 load_dotenv()
 
 
-class PicoConfig(BaseModel):
+class ReporterConfig(BaseModel):
     """Configuration for Pico backend integration."""
     
     api_key: str = Field(..., description="API key for Pico backend authentication")
@@ -27,6 +27,10 @@ class PicoConfig(BaseModel):
     experiment_name: Optional[str] = Field(
         default=None,
         description="Name of the current experiment"
+    )
+    auto_commit: bool = Field(
+        default=False,
+        description="Automatically create git commits when creating experiments"
     )
     timeout: Optional[int] = Field(
         default=30,
@@ -59,17 +63,25 @@ class PicoConfig(BaseModel):
         return v.strip()
     
     @classmethod
-    def from_env(cls, **kwargs) -> 'PicoConfig':
+    def from_env(cls, **kwargs) -> 'ReporterConfig':
         """
         Create config from environment variables with optional overrides.
         
-        Note: PICO_API_KEY and PICO_LAB_HASH environment variables are required.
+        Environment variables:
+        - PICO_API_KEY (required): API key for authentication
+        - PICO_LAB_HASH (required): Lab hash for organizing experiments
+        - PICO_BASE_URL (optional): Base URL for Pico backend API
+        - PICO_EXPERIMENT_NAME (optional): Default experiment name
+        - PICO_AUTO_COMMIT (optional): Enable automatic git commits (true/false)
+        - PICO_TIMEOUT (optional): Request timeout in seconds
+        - PICO_MAX_RETRIES (optional): Maximum retry attempts
         """
         env_config = {
             'api_key': os.getenv('PICO_API_KEY', ''),
             'base_url': os.getenv('PICO_BASE_URL', 'https://picolabs.space/api/report'),
             'lab_hash': os.getenv('PICO_LAB_HASH', ''),
             'experiment_name': os.getenv('PICO_EXPERIMENT_NAME'),
+            'auto_commit': os.getenv('PICO_AUTO_COMMIT', 'false').lower() in ('true', '1', 'yes'),
             'timeout': int(os.getenv('PICO_TIMEOUT', '30')),
             'max_retries': int(os.getenv('PICO_MAX_RETRIES', '3')),
         }

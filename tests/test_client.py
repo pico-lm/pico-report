@@ -6,7 +6,7 @@ import json
 import time
 import pytest
 from unittest.mock import Mock, patch
-from pico_report import PicoClient, PicoConfig
+from pico_report import PicoClient, ReporterConfig
 from pico_report.exceptions import PicoAuthError, PicoUploadError
 
 

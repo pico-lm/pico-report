@@ -26,13 +26,13 @@ cp .env.example .env
 ### Using the Client
 
 ```python
-from pico_report import PicoClient, PicoConfig
+from pico_report import PicoClient, ReporterConfig
 
 # Method 1: Using environment variables (recommended - secure)
 client = PicoClient()
 
 # Method 2: Direct configuration (not recommended for production)
-config = PicoConfig(
+config = ReporterConfig(
     api_key="your-api-key",  # Required
     lab_hash="your-lab-hash",  # Required
     experiment_name="experiment-1"  # Optional

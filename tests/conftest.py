@@ -4,7 +4,7 @@ Pytest configuration and fixtures for pico-report tests.
 
 import os
 import pytest
-from pico_report import PicoConfig
+from pico_report import ReporterConfig
 from pico_report.client import PicoClient
 
 
@@ -48,8 +48,8 @@ def real_base_url():
 
 @pytest.fixture
 def mock_config(mock_api_key, mock_lab_hash):
-    """Return a mock PicoConfig for testing."""
-    return PicoConfig(
+    """Return a mock ReporterConfig for testing."""
+    return ReporterConfig(
         api_key=mock_api_key,
         lab_hash=mock_lab_hash,
         base_url="https://api.test.picolm.io"
@@ -58,8 +58,8 @@ def mock_config(mock_api_key, mock_lab_hash):
 
 @pytest.fixture
 def real_config(real_api_key, real_lab_hash, real_base_url):
-    """Return a real PicoConfig for integration testing."""
-    return PicoConfig(
+    """Return a real ReporterConfig for integration testing."""
+    return ReporterConfig(
         api_key=real_api_key,
         lab_hash=real_lab_hash,
         base_url=real_base_url,
