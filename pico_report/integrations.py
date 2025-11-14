@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Union
 import logging
 
 from .client import PicoClient
-from .config import PicoConfig
+from .config import ReporterConfig
 from .exceptions import PicoReportError
 
 logger = logging.getLogger(__name__)
@@ -15,33 +15,35 @@ logger = logging.getLogger(__name__)
 class PicoReporter:
     """High-level interface for reporting training data to Pico backend."""
     
-    def __init__(
-        self, 
-        config: Optional[PicoConfig] = None,
-        lab_hash: Optional[str] = None,
-        experiment_name: Optional[str] = None,
-        **kwargs
-    ):
+    def __init__(self, config: Optional[ReporterConfig] = None, **kwargs):
         """
         Initialize PicoReporter.
         
         Args:
-            config: PicoConfig instance
-            lab_hash: Lab hash (required - provide here or via PICO_LAB_HASH env var)
-            experiment_name: Experiment name (optional)
-            **kwargs: Additional config parameters (e.g., api_key, base_url)
+            config: ReporterConfig instance (optional)
+            **kwargs: Configuration parameters passed to PicoClient
+                     Common parameters:
+                     - api_key: API key (or use PICO_API_KEY env var)
+                     - lab_hash: Lab hash (required, or use PICO_LAB_HASH env var)
+                     - experiment_name: Experiment name (optional)
+                     - base_url: Base URL (optional)
+                     - auto_commit: Enable git commits (default: False)
             
         Note:
-            If config is not provided, lab_hash and api_key must be provided either
-            through arguments or environment variables (PICO_LAB_HASH, PICO_API_KEY).
-        """
-        config_kwargs = kwargs.copy()
-        if lab_hash:
-            config_kwargs['lab_hash'] = lab_hash
-        if experiment_name:
-            config_kwargs['experiment_name'] = experiment_name
+            If config is not provided, a new ReporterConfig will be created from
+            kwargs and environment variables (PICO_API_KEY, PICO_LAB_HASH, etc.).
             
-        self.client = PicoClient(config=config, **config_kwargs)
+            Auto-commit can be controlled via the auto_commit kwarg or
+            PICO_AUTO_COMMIT environment variable. When enabled, a git commit is
+            created whenever setup_experiment is called, capturing the exact code
+            state for each experiment.
+        
+        Examples:
+            >>> reporter = PicoReporter(lab_hash="my_lab", auto_commit=True)
+            >>> reporter = PicoReporter(config=my_config)
+        """
+        # Pass everything to PicoClient - it handles config creation
+        self.client = PicoClient(config=config, **kwargs)
         self._experiment_created = False
     
     def setup_experiment(
@@ -60,6 +62,12 @@ class PicoReporter:
             
         Returns:
             Experiment details from backend
+            
+        Note:
+            Auto-commit behavior is controlled by the config.auto_commit setting.
+            When enabled, this will create a git commit before creating the experiment,
+            capturing the exact code state. The commit SHA will be tracked with the
+            experiment.
         """
         try:
             response = self.client.create_experiment(

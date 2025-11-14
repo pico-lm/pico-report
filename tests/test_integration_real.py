@@ -7,7 +7,7 @@ Run with: pytest tests/test_integration_real.py -v
 
 import time
 import pytest
-from pico_report import PicoClient, PicoConfig
+from pico_report import PicoClient, ReporterConfig
 from pico_report.integrations import PicoReporter
 from pico_report.exceptions import PicoAuthError, PicoUploadError
 
@@ -137,7 +137,7 @@ class TestRealAPIIntegration:
     
     def test_invalid_api_key(self, real_lab_hash, real_base_url):
         """Test that invalid API key is rejected."""
-        invalid_config = PicoConfig(
+        invalid_config = ReporterConfig(
             api_key="invalid_key_12345",
             lab_hash=real_lab_hash,
             base_url=real_base_url

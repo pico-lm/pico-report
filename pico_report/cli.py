@@ -8,7 +8,7 @@ from typing import Optional
 
 import click
 from .client import PicoClient
-from .config import PicoConfig
+from .config import ReporterConfig
 from .exceptions import PicoReportError
 from .utils import setup_logging, validate_api_key
 
@@ -31,7 +31,7 @@ def validate(api_key: str, lab_hash: str, base_url: str):
         sys.exit(1)
     
     try:
-        config = PicoConfig(api_key=api_key, lab_hash=lab_hash, base_url=base_url)
+        config = ReporterConfig(api_key=api_key, lab_hash=lab_hash, base_url=base_url)
         client = PicoClient(config=config)
         click.echo("✅ API key valid and connection successful")
     except PicoReportError as e:

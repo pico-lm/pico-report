@@ -26,13 +26,13 @@ cp .env.example .env
 ### Using the Client
 
 ```python
-from pico_report import PicoClient, PicoConfig
+from pico_report import PicoClient, ReporterConfig
 
 # Method 1: Using environment variables (recommended - secure)
 client = PicoClient()
 
 # Method 2: Direct configuration (not recommended for production)
-config = PicoConfig(
+config = ReporterConfig(
     api_key="your-api-key",  # Required
     lab_hash="your-lab-hash",  # Required
     experiment_name="experiment-1"  # Optional
@@ -65,6 +65,16 @@ export PICO_API_KEY="your-api-key"
 export PICO_LAB_HASH="your-lab-hash"
 ```
 
+Optional configuration:
+
+```bash
+# Automatically create git commits for each experiment (default: false)
+export PICO_AUTO_COMMIT="true"
+
+# Experiment name (if not provided programmatically)
+export PICO_EXPERIMENT_NAME="my-experiment"
+```
+
 ### Configuration File
 
 Create a `.env` file in your project root:
@@ -76,6 +86,62 @@ PICO_LAB_HASH=your-lab-hash
 
 # Optional
 PICO_EXPERIMENT_NAME=my-experiment
+PICO_AUTO_COMMIT=true
+```
+
+### Git Integration & Auto-Commit
+
+Pico Report can automatically create Git commits when you create experiments, allowing you to track the exact code state used for each run.
+
+#### Enabling Auto-Commit
+
+```python
+from pico_report.integrations import PicoReporter
+
+# Method 1: Via environment variable
+# Set PICO_AUTO_COMMIT=true in your .env file
+
+# Method 2: Via configuration
+reporter = PicoReporter(
+    lab_hash="my-lab-hash",
+    auto_commit=True  # Enable automatic git commits
+)
+
+# Setup experiment - will auto-commit if enabled
+reporter.setup_experiment(
+    experiment_name="my-experiment",
+    config_data={"lr": 0.001}
+)
+# Git commit created automatically with message: "Experiment: my-experiment"
+# Commit is pushed to your remote repository (if configured)
+```
+
+#### Requirements for Auto-Commit
+
+- Your code must be in a Git repository
+- Git must be installed and available in PATH
+- For automatic push: Git remote must be configured with authentication
+
+#### What Gets Committed
+
+When auto-commit is enabled:
+1. All modified and new files are staged (`git add -A`)
+2. A commit is created with message: `"Experiment: {experiment_name}"`
+3. The commit SHA is linked to your experiment in the dashboard
+4. The commit is automatically pushed to your remote repository
+5. You can view code diffs between experiments in the Pico Labs UI
+
+#### Disabling Auto-Commit
+
+```python
+# Disable for specific reporter
+reporter = PicoReporter(
+    lab_hash="my-lab-hash",
+    auto_commit=False  # Disable automatic commits
+)
+
+# Or set environment variable
+# PICO_AUTO_COMMIT=false
 ```
 
 ## High-Level Interface
@@ -88,15 +154,17 @@ from pico_report.integrations import PicoReporter
 # lab_hash is required - provide it explicitly or via PICO_LAB_HASH environment variable
 reporter = PicoReporter(
     lab_hash="my-lab-hash",  # Required
-    experiment_name="transformer-training"  # Optional
+    experiment_name="transformer-training",  # Optional
+    auto_commit=True  # Optional: enable automatic git commits (default: False)
 )
 
-# Setup experiment
+# Setup experiment (auto-commits if enabled)
 reporter.setup_experiment(
     experiment_name="transformer-training",
     config_data={"lr": 0.001, "batch_size": 32},
     description="Training transformer model"
 )
+# If auto_commit=True, a git commit is automatically created and pushed
 
 # Log training metrics
 reporter.log_training_metrics({
@@ -124,7 +192,8 @@ class MyLightningModule(L.LightningModule):
         super().__init__()
         # Requires PICO_API_KEY and PICO_LAB_HASH environment variables to be set
         self.pico_reporter = PicoReporter(
-            experiment_name="lightning-training"
+            experiment_name="lightning-training",
+            auto_commit=True  # Track code changes automatically
         )
     
     def training_step(self, batch, batch_idx):
@@ -164,7 +233,8 @@ from pico_report.integrations import PicoReporter
 wandb_logger = initialize_wandb(monitoring_config, checkpointing_config)
 pico_reporter = PicoReporter(
     lab_hash=monitoring_config.pico.lab_hash,
-    experiment_name=checkpointing_config.run_name
+    experiment_name=checkpointing_config.run_name,
+    auto_commit=True  # Automatically commit experiment code
 )
 
 # In your training loop
@@ -221,9 +291,10 @@ The package includes custom exceptions:
 - `PicoAuthError`: Authentication related errors
 - `PicoUploadError`: Data upload errors
 - `PicoConfigError`: Configuration errors
+- `PicoGitError`: Git operations errors (when using auto-commit)
 
 ```python
-from pico_report.exceptions import PicoAuthError, PicoUploadError
+from pico_report.exceptions import PicoAuthError, PicoUploadError, PicoGitError
 
 try:
     client.log_metrics(metrics, step=100)
@@ -231,4 +302,7 @@ except PicoAuthError:
     print("Authentication failed - check your API key")
 except PicoUploadError as e:
     print(f"Upload failed: {e}")
+except PicoGitError as e:
+    print(f"Git operation failed: {e}")
+    print("Note: Experiment was created, but git commit failed")
 ```
