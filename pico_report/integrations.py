@@ -79,9 +79,16 @@ class PicoReporter:
             logger.info(f"Created experiment: {experiment_name}")
             return response
         except Exception as e:
-            logger.warning(f"Failed to create experiment: {e}")
-            # Continue without failing - experiment might already exist
-            return {}
+            error_str = str(e)
+            # Check if this is a 409 "experiment already exists" error
+            if "409" in error_str and "already exists" in error_str:
+                logger.info(f"Experiment '{experiment_name}' already exists - continuing to log metrics to existing experiment")
+                self._experiment_created = True
+                return {}
+            else:
+                logger.warning(f"Failed to create experiment: {e}")
+                # Continue without failing
+                return {}
     
     def _log_metrics(
         self,
